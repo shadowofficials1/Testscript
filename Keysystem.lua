@@ -74,7 +74,7 @@ function CheckKey()
     OutputLabel:SetText("Key Validated Successfully!")
     
     -- Load the game list or execute code
-    local Games = loadstring(game:HttpGet("https://raw.githubusercontent.com/shadowofficials1/Shadow-/refs/heads/main/Game%20List.lua"))()
+    local Games = loadstring(game:HttpGet("https://raw.githubusercontent.com/shadowofficials1/Testscript/refs/heads/main/GameLists.lua"))()
 
     for PlaceID, Execute in pairs(Games) do
         -- Execute the game script if the key is valid
