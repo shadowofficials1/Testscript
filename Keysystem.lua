@@ -1,104 +1,96 @@
 -- Load Fluent Library
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
--- Create a Fluent Window for Key System
+-- Create a new window for the UI
 local Window = Fluent:CreateWindow({
     Title = "Shadowbyte Key System",
-    SubTitle = "by your_username",
+    SubTitle = "by ShadowOfficial",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
-    Acrylic = true, -- Enables blur, false to disable blur
-    Theme = "Dark"
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
--- Create Tabs for Fluent Interface
+-- Add tabs to the window
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "" })
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
--- Key system section
-local KeySection = Tabs.Main:AddSection({
-    Title = "Key System"
+-- Create a section in the main tab for the key system
+local Section = Tabs.Main:AddSection({
+    Title = "Key System",
+    Description = "Enter your key below to access the game."
 })
 
+-- Initialize the key variable and create the button for copy key link
 _G.Key = "nothing yet"
 
--- Button to copy key link
-KeySection:AddButton({
+Section:AddButton({
     Title = "Copy Key Link",
-    Description = "Copy the key link to paste in browser",
+    Description = "Paste link in browser",
     Callback = function()
-        setclipboard("your_key_link")  -- Provide your actual key link here
+        setclipboard("key link") -- Replace with your actual key link
     end
 })
 
--- Label to show the current key
-local KeyLabel = KeySection:AddLabel({
-    Title = "Key | " .. _G.Key
-})
+-- Create a label to show the entered key
+local KeyLabel = Section:AddLabel("Key | " .. _G.Key)
 
--- Input box to enter the key
-local KeyInput = KeySection:AddInput({
-    Title = "Enter Key",
-    Default = "Enter your key",
-    Placeholder = "Your key here",
+-- Create a textbox to input the key
+local KeyInput = Section:AddTextBox({
+    Title = "Key",
+    Description = "Enter your key",
     Callback = function(txt)
+        KeyLabel:UpdateLabel("Key > " .. txt)
         _G.Key = txt
-        KeyLabel:SetText("Key | " .. _G.Key)
-        CheckKey()  -- Call CheckKey when a key is entered
+        CheckKey()
     end
 })
 
--- Boolean to track if key is already checked
-_G.CheckedKey = false
-local OutputLabel = KeySection:AddLabel({
-    Title = ""
+-- Create an output label to display messages about the key
+local OutputLabel = Section:AddParagraph({
+    Title = "Output",
+    Content = "Enter the key to check"
 })
 
--- Function to check if the key is valid
+-- Function to check the key and load the game script
+_G.CheckedKey = false
 function CheckKey()
     if _G.CheckedKey then
         return
     end
 
+    -- Make an HTTP request to check if the key is valid (replace with actual API)
     local key = game:HttpGet("https://redirect-api.work.ink/tokenValid/" .. _G.Key .. "?linkId=64581")
-    
+
     if key == "False" then
-        OutputLabel:SetText("Key incorrect")
+        OutputLabel:UpdateLabel("Key incorrect")
         return
     end
 
+    -- If the key is valid, mark it as checked
     _G.CheckedKey = true
-    OutputLabel:SetText("Key Validated Successfully!")
-    
-    -- Load the game list or execute code
-    local Games = loadstring(game:HttpGet("https://raw.githubusercontent.com/shadowofficials1/Testscript/refs/heads/main/GameLists.lua"))()
+    OutputLabel:UpdateLabel("Key correct, loading game...")
+
+    -- Load the GameList after the key is validated
+    local Games = loadstring(game:HttpGet("https://raw.githubusercontent.com/shadowofficials1/Testscript/refs/heads/main/GameList.lua"))()
 
     for PlaceID, Execute in pairs(Games) do
-        -- Execute the game script if the key is valid
-        loadstring(game:HttpGet(Execute))()
+        if PlaceID == game.PlaceId then
+            loadstring(game:HttpGet(Execute))()
+            break -- Exit loop after the first matching game script is loaded
+        end
     end
+
+    -- Close the window after the game script is loaded
+    Window:Destroy()
 end
 
--- Notify when the script is loaded
+-- Notify the user that the key system has been loaded
 Fluent:Notify({
-    Title = "Fluent",
-    Content = "The key system has been loaded.",
+    Title = "Key System",
+    Content = "Please enter your key to continue.",
     Duration = 5
 })
-
--- Set the window to be visible
-Window:SelectTab(1)
-
--- Optional: You can use SaveManager and InterfaceManager to handle settings or save states
-SaveManager:SetLibrary(Fluent)
-InterfaceManager:SetLibrary(Fluent)
-
-SaveManager:SetFolder("ShadowbyteKeySystem")
-InterfaceManager:SetFolder("ShadowbyteKeySystem/Interface")
-
--- Build the interface section for settings (if needed)
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
